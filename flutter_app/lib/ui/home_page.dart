@@ -184,7 +184,7 @@ class _DecryptPanelState extends State<DecryptPanel> {
   final cryptoService = CryptoService();
 
   // Variables para guardar las rutas completas
-  String? privateKeyPath;
+  String? privateKeyPath = "/home/super/.ssh/id_rsa";
   String? fileToDecryptPath;
   String? outputFilePath;
 
@@ -192,6 +192,12 @@ class _DecryptPanelState extends State<DecryptPanel> {
   final privateKeyController = TextEditingController();
   final encryptedFileController = TextEditingController();
   final outputFileController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    privateKeyController.text = p.basename(privateKeyPath!);
+  }
 
   Future<void> selectPrivateKey() async {
     final path = await fileService.pickFile();
@@ -243,7 +249,6 @@ class _DecryptPanelState extends State<DecryptPanel> {
                   child: TextField(
                     controller: privateKeyController,
                     readOnly: true,
-                    decoration: const InputDecoration(hintText: "Selecciona clave PEM..."),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -263,7 +268,6 @@ class _DecryptPanelState extends State<DecryptPanel> {
                   child: TextField(
                     controller: encryptedFileController,
                     readOnly: true,
-                    decoration: const InputDecoration(hintText: "documento.txt.enc"),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -283,7 +287,6 @@ class _DecryptPanelState extends State<DecryptPanel> {
                   child: TextField(
                     controller: outputFileController,
                     readOnly: true,
-                    decoration: const InputDecoration(hintText: "resultado_final.txt"),
                   ),
                 ),
                 const SizedBox(width: 8),
