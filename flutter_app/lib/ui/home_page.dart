@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
+import 'dart:io';
 
 import '../services/file_service.dart';
 import '../services/crypto_service.dart';
+
+String home = Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'] ?? '';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -42,11 +45,8 @@ class _EncryptPanelState extends State<EncryptPanel> {
   final fileController = TextEditingController();
 
   Future<void> selectPublicKey() async {
-
-    final path = await fileService.pickFile();
-
+    final path = await fileService.pickFileFromDirectory("$home/.ssh");
     if (path == null) return;
-
     setState(() {
       publicKeyPath = path;
       publicKeyController.text = p.basename(path);
@@ -54,11 +54,10 @@ class _EncryptPanelState extends State<EncryptPanel> {
   }
 
   Future<void> selectFileToEncrypt() async {
-
-    final path = await fileService.pickFile();
-
+    String currentDir = Directory.current.path;
+    String parentDir = p.dirname(currentDir);
+    final path = await fileService.pickFileFromDirectory(parentDir);
     if (path == null) return;
-
     setState(() {
       fileToEncryptPath = path;
       fileController.text = p.basename(path);
@@ -67,65 +66,49 @@ class _EncryptPanelState extends State<EncryptPanel> {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             Text("Encriptar",
                 style: Theme.of(context).textTheme.titleLarge),
-
             const SizedBox(height: 20),
-
-            const Text("Clau pública (RSA):"),
-
+            const Text("Clave pública (RSA):"),
             Row(
               children: [
-
                 Expanded(
                   child: TextField(
                     controller: publicKeyController,
                     readOnly: true,
                   ),
                 ),
-
                 const SizedBox(width: 8),
-
                 ElevatedButton(
                   onPressed: selectPublicKey,
                   child: const Text("Selecciona..."),
                 )
               ],
             ),
-
             const SizedBox(height: 16),
-
-            const Text("Arxiu a encriptar:"),
-
+            const Text("Archivo a encriptar:"),
             Row(
               children: [
-
                 Expanded(
                   child: TextField(
                     controller: fileController,
                     readOnly: true,
                   ),
                 ),
-
                 const SizedBox(width: 8),
-
                 ElevatedButton(
                   onPressed: selectFileToEncrypt,
-                  child: const Text("Navega..."),
+                  child: const Text("Selecciona..."),
                 )
               ],
             ),
-
             const Spacer(),
-
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -136,10 +119,8 @@ class _EncryptPanelState extends State<EncryptPanel> {
                     );
                     return;
                   }
-
                   // Definimos la ruta de salida (ej: archivo.txt -> archivo.txt.enc)
                   final outputFilePath = '$fileToEncryptPath.enc';
-
                   try {
                     // Mostramos un indicador de carga si quieres, o simplemente ejecutamos
                     await cryptoService.encryptFile(
@@ -147,7 +128,6 @@ class _EncryptPanelState extends State<EncryptPanel> {
                       publicKeyPath: publicKeyPath!,
                       outputFilePath: outputFilePath,
                     );
-
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text("¡Archivo encriptado en: ${p.basename(outputFilePath)}!")),
@@ -162,7 +142,7 @@ class _EncryptPanelState extends State<EncryptPanel> {
                     }
                   }
                 },
-                child: const Text("Encripta Arxiu"),
+                child: const Text("Encripta Archivo"),
               ),
             )
           ],
@@ -184,7 +164,7 @@ class _DecryptPanelState extends State<DecryptPanel> {
   final cryptoService = CryptoService();
 
   // Variables para guardar las rutas completas
-  String? privateKeyPath = "/home/super/.ssh/id_rsa";
+  String? privateKeyPath = "${home}/.ssh/id_rsa";
   String? fileToDecryptPath;
   String? outputFilePath;
 
@@ -200,7 +180,7 @@ class _DecryptPanelState extends State<DecryptPanel> {
   }
 
   Future<void> selectPrivateKey() async {
-    final path = await fileService.pickFile();
+    final path = await fileService.pickFileFromDirectory("$home/.ssh");
     if (path == null) return;
     setState(() {
       privateKeyPath = path;
@@ -209,7 +189,9 @@ class _DecryptPanelState extends State<DecryptPanel> {
   }
 
   Future<void> selectFileToDecrypt() async {
-    final path = await fileService.pickFile();
+    String currentDir = Directory.current.path;
+    String parentDir = p.dirname(currentDir);
+    final path = await fileService.pickFileFromDirectory("$parentDir");
     if (path == null) return;
     setState(() {
       fileToDecryptPath = path;
@@ -218,8 +200,9 @@ class _DecryptPanelState extends State<DecryptPanel> {
   }
 
   Future<void> selectOutputPath() async {
-    // Aquí usamos el pickFile también para definir el destino
-    final path = await fileService.pickFile();
+    String currentDir = Directory.current.path;
+    String parentDir = p.dirname(currentDir);
+    final path = await fileService.pickFileFromDirectory("$parentDir");
     if (path == null) return;
     setState(() {
       outputFilePath = path;
