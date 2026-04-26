@@ -71,7 +71,7 @@ class _DecryptPanelState extends State<DecryptPanel> {
 
   Future<void> handleDecrypt() async {
     if (privateKeyPath == null || fileToDecryptPath == null || outputFilePath == null) {
-      showMessage(context, 'Por favor, selecciona los tres archivos necesarios');
+      showError(context, 'Selecciona todos los campos');
       return;
     }
 
@@ -83,7 +83,7 @@ class _DecryptPanelState extends State<DecryptPanel> {
       );
 
       if (!mounted) return;
-      showMessage(context, '¡Archivo desencriptado con éxito!');
+      showMessage(context, 'Archivo desencriptado con éxito en: ${p.basename(outputFilePath!)}');
     } catch (error) {
       debugPrint('$error');
 
@@ -95,42 +95,58 @@ class _DecryptPanelState extends State<DecryptPanel> {
   @override
   Widget build(BuildContext context) {
     return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Desencriptar', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 20),
+            const Row(
+              children: [
+                Icon(Icons.lock_open_outlined, color: Colors.deepPurpleAccent),
+                SizedBox(width: 8),
+                Text(
+                  'Desencriptar',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            const Divider(height: 24),
             FilePickerRow(
               label: 'Clave privada (RSA):',
               controller: privateKeyController,
               onSelect: selectPrivateKey,
+              icon: Icons.key_outlined,
             ),
             const SizedBox(height: 16),
             FilePickerRow(
               label: 'Archivo encriptado:',
               controller: encryptedFileController,
               onSelect: selectFileToDecrypt,
+              icon: Icons.enhanced_encryption_outlined,
             ),
             const SizedBox(height: 16),
             FilePickerRow(
               label: 'Archivo desencriptado (Destino):',
               controller: outputFileController,
               onSelect: selectOutputPath,
+              icon: Icons.save_alt_outlined,
             ),
             const Spacer(),
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton(
+              child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
+                  backgroundColor: Colors.deepPurple,
                   foregroundColor: Colors.white,
                 ),
                 onPressed: handleDecrypt,
-                child: const Text('Desencriptar archivo'),
+                icon: const Icon(Icons.lock_open),
+                label: const Text('Desencriptar archivo'),
               ),
             ),
+            const SizedBox(height: 24),
           ],
         ),
       ),

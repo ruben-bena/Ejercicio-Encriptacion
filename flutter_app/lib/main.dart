@@ -10,9 +10,14 @@ class EncryptionApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       title: 'RSA Tool',
       debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        brightness: Brightness.dark,
+        primarySwatch: Colors.deepPurple,
+        useMaterial3: true,
+      ),
       home: HomePage(),
     );
   }

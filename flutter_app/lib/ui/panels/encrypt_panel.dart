@@ -19,14 +19,17 @@ class _EncryptPanelState extends State<EncryptPanel> {
 
   String? publicKeyPath;
   String? fileToEncryptPath;
+  String? outputFilePath;
 
   final TextEditingController publicKeyController = TextEditingController();
   final TextEditingController fileController = TextEditingController();
+  final TextEditingController outputFileController = TextEditingController();
 
   @override
   void dispose() {
     publicKeyController.dispose();
     fileController.dispose();
+    outputFileController.dispose();
     super.dispose();
   }
 
@@ -50,23 +53,31 @@ class _EncryptPanelState extends State<EncryptPanel> {
     });
   }
 
+  Future<void> selectOutputPath() async {
+    final String? selectedPath = await fileService.pickFileFromDirectory(parentOfCurrentDirectory);
+    if (selectedPath == null) return;
+
+    setState(() {
+      outputFilePath = selectedPath;
+      outputFileController.text = p.basename(selectedPath);
+    });
+  }
+
   Future<void> handleEncrypt() async {
-    if (publicKeyPath == null || fileToEncryptPath == null) {
-      showMessage(context, 'Selecciona todos los archivos primero');
+    if (publicKeyPath == null || fileToEncryptPath == null || outputFilePath == null) {
+      showError(context, 'Selecciona todos los campos');
       return;
     }
-
-    final String outputFilePath = '$fileToEncryptPath.enc';
 
     try {
       await cryptoService.encryptFile(
         inputFilePath: fileToEncryptPath!,
         publicKeyPath: publicKeyPath!,
-        outputFilePath: outputFilePath,
+        outputFilePath: outputFilePath!,
       );
 
       if (!mounted) return;
-      showMessage(context, '¡Archivo encriptado en: ${p.basename(outputFilePath)}!');
+      showMessage(context, 'Archivo encriptado con éxito en: ${p.basename(outputFilePath!)}');
     } catch (error) {
       debugPrint('$error');
 
@@ -78,32 +89,58 @@ class _EncryptPanelState extends State<EncryptPanel> {
   @override
   Widget build(BuildContext context) {
     return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Encriptar', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 20),
+            const Row(
+              children: [
+                Icon(Icons.lock_outline, color: Colors.deepPurpleAccent),
+                SizedBox(width: 8),
+                Text(
+                  'Encriptar',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            const Divider(height: 24),
             FilePickerRow(
               label: 'Clave pública (RSA):',
               controller: publicKeyController,
               onSelect: selectPublicKey,
+              icon: Icons.vpn_key_outlined,
             ),
             const SizedBox(height: 16),
             FilePickerRow(
               label: 'Archivo a encriptar:',
               controller: fileController,
               onSelect: selectFileToEncrypt,
+              icon: Icons.description_outlined,
+            ),
+            const SizedBox(height: 16),
+            FilePickerRow(
+              label: 'Archivo encriptado (Destino):',
+              controller: outputFileController,
+              onSelect: selectOutputPath,
+              icon: Icons.save_alt_outlined,
             ),
             const Spacer(),
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton(
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.deepPurple,
+                  foregroundColor: Colors.white,
+                ),
                 onPressed: handleEncrypt,
-                child: const Text('Encripta Archivo'),
+                icon: const Icon(Icons.lock),
+                label: const Text('Encriptar archivo'),
               ),
             ),
+            const SizedBox(height: 24),
           ],
         ),
       ),

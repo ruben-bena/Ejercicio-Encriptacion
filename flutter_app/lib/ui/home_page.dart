@@ -8,12 +8,14 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(title: const Text('Herramienta RSA')),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(24),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: const [
             Expanded(child: EncryptPanel()),
-            SizedBox(width: 16),
+            SizedBox(width: 24),
             Expanded(child: DecryptPanel()),
           ],
         ),
